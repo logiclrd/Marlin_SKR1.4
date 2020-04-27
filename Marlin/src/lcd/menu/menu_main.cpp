@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -39,8 +39,12 @@
   #include "game/game.h"
 #endif
 
-#define MACHINE_CAN_STOP (EITHER(SDSUPPORT, HOST_PROMPT_SUPPORT) || defined(ACTION_ON_CANCEL))
-#define MACHINE_CAN_PAUSE (ANY(SDSUPPORT, HOST_PROMPT_SUPPORT, PARK_HEAD_ON_PAUSE) || defined(ACTION_ON_PAUSE))
+#if EITHER(SDSUPPORT, HOST_PROMPT_SUPPORT) || defined(ACTION_ON_CANCEL)
+  #define MACHINE_CAN_STOP 1
+#endif
+#if ANY(SDSUPPORT, HOST_PROMPT_SUPPORT, PARK_HEAD_ON_PAUSE) || defined(ACTION_ON_PAUSE)
+  #define MACHINE_CAN_PAUSE 1
+#endif
 
 #if ENABLED(PRUSA_MMU2)
   #include "../../lcd/menu/menu_mmu2.h"
@@ -81,7 +85,7 @@ extern const char M21_STR[];
 
 void menu_main() {
   START_MENU();
-  BACK_ITEM(MSG_WATCH);
+  BACK_ITEM(MSG_INFO_SCREEN);
 
   const bool busy = printingIsActive()
     #if ENABLED(SDSUPPORT)
@@ -134,16 +138,14 @@ void menu_main() {
         #if PIN_EXISTS(SD_DETECT)
           ACTION_ITEM(MSG_NO_MEDIA, nullptr);
         #else
-          GCODES_ITEM(MSG_INIT_MEDIA, M21_STR);
-          ACTION_ITEM(MSG_MEDIA_RELEASED, nullptr);
+          GCODES_ITEM(MSG_ATTACH_MEDIA, M21_STR);
         #endif
       }
 
     #endif // !HAS_ENCODER_WHEEL && SDSUPPORT
 
-    #if MACHINE_CAN_PAUSE
-      if (printingIsPaused()) ACTION_ITEM(MSG_RESUME_PRINT, ui.resume_print);
-    #endif
+    if (TERN0(MACHINE_CAN_PAUSE, printingIsPaused()))
+      ACTION_ITEM(MSG_RESUME_PRINT, ui.resume_print);
 
     SUBMENU(MSG_MOTION, menu_motion);
   }
@@ -201,7 +203,7 @@ void menu_main() {
       GCODES_ITEM(MSG_SWITCH_PS_ON, PSTR("M80"));
   #endif
 
-  #if HAS_ENCODER_WHEEL && ENABLED(SDSUPPORT)
+  #if BOTH(HAS_ENCODER_WHEEL, SDSUPPORT)
 
     // *** IF THIS SECTION IS CHANGED, REPRODUCE ABOVE ***
 
@@ -228,8 +230,7 @@ void menu_main() {
       #if PIN_EXISTS(SD_DETECT)
         ACTION_ITEM(MSG_NO_MEDIA, nullptr);
       #else
-        GCODES_ITEM(MSG_INIT_MEDIA, M21_STR);
-        ACTION_ITEM(MSG_MEDIA_RELEASED, nullptr);
+        GCODES_ITEM(MSG_ATTACH_MEDIA, M21_STR);
       #endif
     }
 
@@ -238,9 +239,7 @@ void menu_main() {
   #if HAS_SERVICE_INTERVALS
     static auto _service_reset = [](const int index) {
       print_job_timer.resetServiceInterval(index);
-      #if HAS_BUZZER
-        ui.completion_feedback();
-      #endif
+      ui.completion_feedback();
       ui.reset_status();
       ui.return_to_status();
     };
@@ -271,20 +270,24 @@ void menu_main() {
     #if ENABLED(GAMES_EASTER_EGG)
       SKIP_ITEM();
       SKIP_ITEM();
+      SKIP_ITEM();
     #endif
-    SUBMENU(MSG_GAMES, (
-      #if HAS_GAME_MENU
-        menu_game
-      #elif ENABLED(MARLIN_BRICKOUT)
-        brickout.enter_game
-      #elif ENABLED(MARLIN_INVADERS)
-        invaders.enter_game
-      #elif ENABLED(MARLIN_SNAKE)
-        snake.enter_game
-      #elif ENABLED(MARLIN_MAZE)
-        maze.enter_game
-      #endif
-    ));
+    // Game sub-menu or the individual game
+    {
+      SUBMENU(
+        #if HAS_GAME_MENU
+          MSG_GAMES, menu_game
+        #elif ENABLED(MARLIN_BRICKOUT)
+          MSG_BRICKOUT, brickout.enter_game
+        #elif ENABLED(MARLIN_INVADERS)
+          MSG_INVADERS, invaders.enter_game
+        #elif ENABLED(MARLIN_SNAKE)
+          MSG_SNAKE, snake.enter_game
+        #elif ENABLED(MARLIN_MAZE)
+          MSG_MAZE, maze.enter_game
+        #endif
+      );
+    }
   #endif
 
   END_MENU();
