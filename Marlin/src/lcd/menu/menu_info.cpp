@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -34,8 +34,8 @@
   #include "game/game.h"
 #endif
 
-#define VALUE_ITEM(MSG, VALUE, STYL)    do{ char buffer[21]; strcpy_P(buffer, PSTR(": ")); strcpy(buffer + 2, VALUE); STATIC_ITEM(MSG, STYL, buffer); }while(0)
-#define VALUE_ITEM_P(MSG, PVALUE, STYL) do{ char buffer[21]; strcpy_P(buffer, PSTR(": ")); strcpy_P(buffer + 2, PSTR(PVALUE)); STATIC_ITEM(MSG, STYL, buffer); }while(0)
+#define VALUE_ITEM(MSG, VALUE, STYL)    do{ char msg[21]; strcpy_P(msg, PSTR(": ")); strcpy(msg + 2, VALUE); STATIC_ITEM(MSG, STYL, msg); }while(0)
+#define VALUE_ITEM_P(MSG, PVALUE, STYL) do{ char msg[21]; strcpy_P(msg, PSTR(": ")); strcpy_P(msg + 2, PSTR(PVALUE)); STATIC_ITEM(MSG, STYL, msg); }while(0)
 
 #if ENABLED(PRINTCOUNTER)
 
@@ -47,9 +47,9 @@
   void menu_info_stats() {
     if (ui.use_click()) return ui.go_back();
 
-    char buffer[21];  // For macro usage
-
     printStatistics stats = print_job_timer.getStats();
+
+    char buffer[21];
 
     START_SCREEN();                                                                         // 12345678901234567890
     VALUE_ITEM(MSG_INFO_PRINT_COUNT, i16tostr3left(stats.totalPrints), SS_LEFT);            // Print Count: 999
@@ -205,7 +205,7 @@ void menu_info_board() {
   if (ui.use_click()) return ui.go_back();
 
   START_SCREEN();
-  STATIC_ITEM_P(PSTR(BOARD_INFO_NAME), SS_CENTER|SS_INVERT);       // MyPrinterController
+  STATIC_ITEM_P(PSTR(BOARD_INFO_NAME), SS_DEFAULT|SS_INVERT);      // MyPrinterController
   #ifdef BOARD_WEBSITE_URL
     STATIC_ITEM_P(PSTR(BOARD_WEBSITE_URL), SS_LEFT);               // www.my3dprinter.com
   #endif
@@ -237,22 +237,20 @@ void menu_info_board() {
   void menu_info_printer() {
     if (ui.use_click()) return ui.go_back();
     START_SCREEN();
-    STATIC_ITEM(MSG_MARLIN, SS_CENTER|SS_INVERT);               // Marlin
+    STATIC_ITEM(MSG_MARLIN, SS_DEFAULT|SS_INVERT);              // Marlin
     STATIC_ITEM_P(PSTR(SHORT_BUILD_VERSION));                   // x.x.x-Branch
     STATIC_ITEM_P(PSTR(STRING_DISTRIBUTION_DATE));              // YYYY-MM-DD HH:MM
     STATIC_ITEM_P(PSTR(MACHINE_NAME));                          // My3DPrinter
     STATIC_ITEM_P(PSTR(WEBSITE_URL));                           // www.my3dprinter.com
     VALUE_ITEM_P(MSG_INFO_EXTRUDERS, STRINGIFY(EXTRUDERS), SS_CENTER); // Extruders: 2
-    #if ENABLED(AUTO_BED_LEVELING_3POINT)
-      STATIC_ITEM(MSG_3POINT_LEVELING);                         // 3-Point Leveling
-    #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
-      STATIC_ITEM(MSG_LINEAR_LEVELING);                         // Linear Leveling
-    #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      STATIC_ITEM(MSG_BILINEAR_LEVELING);                       // Bi-linear Leveling
-    #elif ENABLED(AUTO_BED_LEVELING_UBL)
-      STATIC_ITEM(MSG_UBL_LEVELING);                            // Unified Bed Leveling
-    #elif ENABLED(MESH_BED_LEVELING)
-      STATIC_ITEM(MSG_MESH_LEVELING);                           // Mesh Leveling
+    #if HAS_LEVELING
+      STATIC_ITEM(
+        TERN_(AUTO_BED_LEVELING_3POINT, MSG_3POINT_LEVELING)      // 3-Point Leveling
+        TERN_(AUTO_BED_LEVELING_LINEAR, MSG_LINEAR_LEVELING)      // Linear Leveling
+        TERN_(AUTO_BED_LEVELING_BILINEAR, MSG_BILINEAR_LEVELING)  // Bi-linear Leveling
+        TERN_(AUTO_BED_LEVELING_UBL, MSG_UBL_LEVELING)            // Unified Bed Leveling
+        TERN_(MESH_BED_LEVELING, MSG_MESH_LEVELING)               // Mesh Leveling
+      );
     #endif
     END_SCREEN();
   }
@@ -280,27 +278,26 @@ void menu_info() {
   #endif
 
   #if HAS_GAMES
+  {
     #if ENABLED(GAMES_EASTER_EGG)
-      SKIP_ITEM();
-      SKIP_ITEM();
-      SKIP_ITEM();
+      SKIP_ITEM(); SKIP_ITEM(); SKIP_ITEM();
     #endif
+
     // Game sub-menu or the individual game
-    {
-      SUBMENU(
-        #if HAS_GAME_MENU
-          MSG_GAMES, menu_game
-        #elif ENABLED(MARLIN_BRICKOUT)
-          MSG_BRICKOUT, brickout.enter_game
-        #elif ENABLED(MARLIN_INVADERS)
-          MSG_INVADERS, invaders.enter_game
-        #elif ENABLED(MARLIN_SNAKE)
-          MSG_SNAKE, snake.enter_game
-        #elif ENABLED(MARLIN_MAZE)
-          MSG_MAZE, maze.enter_game
-        #endif
-      );
-    }
+    SUBMENU(
+      #if HAS_GAME_MENU
+        MSG_GAMES, menu_game
+      #elif ENABLED(MARLIN_BRICKOUT)
+        MSG_BRICKOUT, brickout.enter_game
+      #elif ENABLED(MARLIN_INVADERS)
+        MSG_INVADERS, invaders.enter_game
+      #elif ENABLED(MARLIN_SNAKE)
+        MSG_SNAKE, snake.enter_game
+      #elif ENABLED(MARLIN_MAZE)
+        MSG_MAZE, maze.enter_game
+      #endif
+    );
+  }
   #endif
 
   END_MENU();

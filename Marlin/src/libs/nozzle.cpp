@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -152,18 +152,20 @@ Nozzle nozzle;
         LIMIT(   end[arrPos].A, soft_endstop.min.A, soft_endstop.max.A); \
       }while(0)
 
-      LIMIT_AXIS(x);
-      LIMIT_AXIS(y);
-      LIMIT_AXIS(z);
+      if (soft_endstops_enabled) {
 
-      const bool radiusOutOfRange = (middle[arrPos].x + radius > soft_endstop.max.x)
-                                 || (middle[arrPos].x - radius < soft_endstop.min.x)
-                                 || (middle[arrPos].y + radius > soft_endstop.max.y)
-                                 || (middle[arrPos].y - radius < soft_endstop.min.y);
+        LIMIT_AXIS(x);
+        LIMIT_AXIS(y);
+        LIMIT_AXIS(z);
+        const bool radiusOutOfRange = (middle[arrPos].x + radius > soft_endstop.max.x)
+                                   || (middle[arrPos].x - radius < soft_endstop.min.x)
+                                   || (middle[arrPos].y + radius > soft_endstop.max.y)
+                                   || (middle[arrPos].y - radius < soft_endstop.min.y);
+        if (radiusOutOfRange && pattern == 2) {
+          SERIAL_ECHOLNPGM("Warning: Radius Out of Range");
+          return;
+        }
 
-      if (radiusOutOfRange && pattern == 2) {
-        SERIAL_ECHOLNPGM("Warning: Radius Out of Range");
-        return;
       }
 
     #endif

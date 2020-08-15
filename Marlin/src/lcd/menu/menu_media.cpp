@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -45,25 +45,11 @@ void lcd_sd_updir() {
 
   void MarlinUI::reselect_last_file() {
     if (sd_encoder_position == 0xFFFF) return;
-    //#if HAS_GRAPHICAL_LCD
-    //  // This is a hack to force a screen update.
-    //  ui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
-    //  ui.synchronize();
-    //  safe_delay(50);
-    //  ui.synchronize();
-    //  ui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
-    //  ui.drawing_screen = ui.screen_changed = true;
-    //#endif
-
     goto_screen(menu_media, sd_encoder_position, sd_top_line, sd_items);
     sd_encoder_position = 0xFFFF;
-
     defer_status_screen();
-
-    //#if HAS_GRAPHICAL_LCD
-    //  update();
-    //#endif
   }
+
 #endif
 
 inline void sdcard_start_selected_file() {
@@ -146,9 +132,8 @@ void menu_media() {
       else
         MENU_ITEM(sdfile, MSG_MEDIA_MENU, card);
     }
-    else {
+    else
       SKIP_ITEM();
-    }
   }
   END_MENU();
 }
