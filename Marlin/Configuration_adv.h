@@ -788,7 +788,7 @@
   #else
     // Amplification factor. Used to scale the correction step up or down in case
     // the stepper (spindle) position is farther out than the test point.
-    #define Z_STEPPER_ALIGN_AMP 2       // Use a value > 1.0 NOTE: This may cause instability!
+    #define Z_STEPPER_ALIGN_AMP 1.2       // Use a value > 1.0 NOTE: This may cause instability!
   #endif
 
   // On a 300mm bed a 5% grade would give a misalignment of ~1.5cm
@@ -852,9 +852,9 @@
  * The Deactive Time can be overridden with M18 and M84. Set to 0 for No Timeout.
  */
 #define DEFAULT_STEPPER_DEACTIVE_TIME 120
-#define DISABLE_INACTIVE_X true
-#define DISABLE_INACTIVE_Y true
-#define DISABLE_INACTIVE_Z true  // Set 'false' if the nozzle could fall onto your printed part!
+#define DISABLE_INACTIVE_X false
+#define DISABLE_INACTIVE_Y false
+#define DISABLE_INACTIVE_Z false  // Set 'false' if the nozzle could fall onto your printed part!
 #define DISABLE_INACTIVE_E true
 
 // If the Nozzle or Bed falls when the Z stepper is disabled, set its resting position here.
